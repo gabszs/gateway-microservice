@@ -34,3 +34,32 @@ class DuplicatedError(HTTPException):
 class InvalidCredentials(HTTPException):
     def __init__(self, detail: Any = None, headers: Optional[Dict[str, Any]] = None) -> None:
         super().__init__(status.HTTP_401_UNAUTHORIZED, detail, headers)
+
+
+class ObjectStorageError(HTTPException):
+    def __init__(self, detail: Any = None, headers: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__(status.HTTP_500_INTERNAL_SERVER_ERROR, detail, headers)
+
+
+class ObjectNotFoundError(HTTPException):
+    def __init__(self, detail: Any = None, headers: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__(status.HTTP_404_NOT_FOUND, detail or "Object not found in storage.", headers)
+
+
+class ObjectAlreadyExistsError(HTTPException):
+    def __init__(self, detail: Any = None, headers: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__(status.HTTP_409_CONFLICT, detail or "Object already exists in storage.", headers)
+
+
+class ObjectUploadError(HTTPException):
+    def __init__(self, detail: Any = None, headers: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, detail or "Failed to upload object to storage.", headers
+        )
+
+
+class ObjectDownloadError(HTTPException):
+    def __init__(self, detail: Any = None, headers: Optional[Dict[str, Any]] = None) -> None:
+        super().__init__(
+            status.HTTP_500_INTERNAL_SERVER_ERROR, detail or "Failed to download object from storage.", headers
+        )
