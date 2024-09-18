@@ -19,7 +19,7 @@ async def get_jwt_bearer(client=Depends(get_async_client)):
     return JWTBearer(client=client)
 
 
-async def get_current_user(user_credentials: UserSchema = Depends(get_jwt_bearer)) -> UserSchema:
+async def get_current_user(user_credentials: UserSchema = Depends(JWTBearer())) -> UserSchema:
     return user_credentials
 
 
@@ -34,7 +34,5 @@ async def get_auth_service(client: ClientSession = Depends(get_async_client)):
 
 
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
-
-
 CurrentUser = Annotated[User, Depends(get_current_user)]
 CurrentActiveUser = Annotated[User, Depends(get_current_active_user)]
