@@ -10,7 +10,13 @@ from app.core.exceptions import AuthError
 from app.core.settings import Settings
 from app.schemas.user_schema import User as UserSchema
 
+
 settings = Settings()
+
+
+async def get_async_client() -> ClientSession:
+    async with ClientSession() as session:
+        yield session
 
 
 def authorize(role: List[str], allow_same_id: bool = False):
@@ -34,11 +40,10 @@ def authorize(role: List[str], allow_same_id: bool = False):
 
 
 class JWTBearer(HTTPBearer):
-    def __init__(self, client: ClientSession, auto_error: bool = True):
+    def __init__(self, auto_error: bool = True):
         super().__init__(auto_error=auto_error)
-        self.client = client
 
-    async def __call__(self, request: Request) -> UserSchema | None:
+    async def __call__(self, request: Request) -> UserSchema | None:  # type: ignore
         credentials: HTTPAuthorizationCredentials = await super().__call__(request)
 
         if not credentials:
@@ -47,13 +52,15 @@ class JWTBearer(HTTPBearer):
         if credentials.scheme != "Bearer":
             raise AuthError(detail="Invalid authentication scheme")
 
-        status_code, data = await self.get_data_from_token(credentials.credentials)
-        if status_code != 200:
-            raise AuthError(detail="Invalid token or expired token")
-        return data
+        async for client in get_async_client():
+            status_code, data = await self.get_data_from_token(credentials.credentials, client)
+            if status_code != 200:
+                raise AuthError(detail=data["detail"])
+            return data
 
-    async def get_data_from_token(self, token: str) -> tuple[int, UserSchema]:
-        async with self.client.get(settings.auth_service_url, headers={"Authorization": token}) as response:
+    async def get_data_from_token(self, token: str, client: ClientSession) -> tuple[int, UserSchema]:
+        token = f"Bearer {token}"
+        async with client.get(f"{settings.auth_service_url}/me", headers={"Authorization": token}) as response:
             status_code = response.status
             data = await response.json()
             return status_code, UserSchema(**data)
