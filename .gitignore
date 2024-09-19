@@ -163,3 +163,4 @@ cython_debug/
 test.py
 .test.py
 tests/new_conftest.py
+/assets
