@@ -7,16 +7,11 @@ from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security import HTTPBearer
 
 from app.core.exceptions import AuthError
+from app.core.http_client import get_async_client
 from app.core.settings import Settings
 from app.schemas.user_schema import User as UserSchema
 
-
 settings = Settings()
-
-
-async def get_async_client() -> ClientSession:
-    async with ClientSession() as session:
-        yield session
 
 
 def authorize(role: List[str], allow_same_id: bool = False):
