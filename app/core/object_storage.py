@@ -7,11 +7,11 @@ from minio.error import S3Error
 from miniopy_async import Minio as AsyncMinio
 
 from app.core.settings import settings
-from app.exceptions import ObjectDownloadError
-from app.exceptions import ObjectNotFoundError
-from app.exceptions import ObjectStorageError
-from app.exceptions import ObjectUploadError
-
+from app.core.exceptions import ObjectDownloadError
+from app.core.exceptions import ObjectNotFoundError
+from app.core.exceptions import ObjectStorageError
+from app.core.exceptions import ObjectUploadError
+from icecream import ic
 
 class MinioManager:
     def __init__(
@@ -27,8 +27,10 @@ class MinioManager:
         try:
             self.client.fput_object(bucket_name, object_name, file_path)
         except FileNotFoundError:
+            ic()
             raise ObjectNotFoundError(f"File {file_path} not found.")
         except S3Error as e:
+            ic()
             raise ObjectUploadError(f"Failed to upload object {object_name} to bucket {bucket_name}: {e}")
 
     def download_file(self, bucket_name: str, object_name: str, file_path: str) -> None:
@@ -71,9 +73,9 @@ class AsyncMinioManager:
         endpoint: str = settings.minio_endpoint,
         access_key: str = settings.minio_access_key,
         secret_key: str = settings.minio_secret_key,
-        secure=False,
+        secure: bool = False,
     ) -> None:
-        self.client = AsyncMinio(endpoint, access_key=access_key, secret_key=secret_key, secure=True)
+        self.client = AsyncMinio(endpoint, access_key=access_key, secret_key=secret_key, secure=secure)
 
     async def upload_file(self, bucket_name: str, object_name: str, file_path: str) -> None:
         try:
