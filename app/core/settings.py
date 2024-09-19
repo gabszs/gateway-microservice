@@ -1,20 +1,23 @@
-from dotenv import load_dotenv
 from os import getenv
+
+from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
 
 load_dotenv()
 
-develop_env: bool = getenv("develop_env")
+is_prod: bool = bool(getenv("is_prod", default=False))
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file_encoding="utf-8")
 
     auth_service_url: str
-    develop_env: str
+    is_prod: str
+    upload_bucket_name: str
     minio_endpoint: str
     minio_access_key: str
     minio_secret_key: str
-    minio_bucket: str
+
 
 settings = Settings()
