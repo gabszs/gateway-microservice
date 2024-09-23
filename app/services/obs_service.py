@@ -1,28 +1,33 @@
 from io import BytesIO
 
+import pika
 from fastapi import UploadFile
 from fastapi.responses import StreamingResponse
+from pika.adapters.blocking_connection import BlockingChannel
 
+from app.core.exceptions import BadRequestError
 from app.core.object_storage import AsyncMinioManager
-from app.schemas.file_schema import FileMetadata
+from app.schemas.file_schema import QueueMessage
 
 
 class MinioService:
-    def __init__(self, minio: AsyncMinioManager, bucket_name: str) -> None:
+    def __init__(self, minio: AsyncMinioManager, bucket_name: str, rabbit_channel: BlockingChannel) -> None:
         self.minio = minio
         self.bucket_name = bucket_name
+        self.rabbit_channel = rabbit_channel
 
     async def upload_video_file(self, file: UploadFile) -> None:
-        file_metadata = FileMetadata(file_name=file.filename, content_type=file.content_type)
+        queue_message = QueueMessage(file_name=file.filename, content_type=file.content_type, mp3_filename=None)
         data = await file.read()
 
         await self.minio.put_file(
             bucket_name=self.bucket_name,
-            object_name=file_metadata.file_name,  # type: ignore
+            object_name=queue_message.file_name,  # type: ignore
             data=BytesIO(data),
             length=len(data),
             content_type=file.content_type,
         )
+        await self.publish_message(queue_message.file_name, queue_message)
         # se for retornar, vai ser por que preciso retornar o id desse arqruivo
         # mas como o id e o proprio nome do arquivo, entao podemos usar ele e nao
         # precisamos retornar o id, ----- VOU CHECKAR COM SENIOR PARA VER QUAL A ACAO MAIS LOGICA
@@ -32,3 +37,18 @@ class MinioService:
         return StreamingResponse(
             response.content, media_type=response.headers.get("Content-Type", "application/octet-stream")
         )
+
+    async def remove_video_file(self, object_name: str):
+        await self.minio.delete_object(self.bucket_name, object_name)
+
+    async def publish_message(self, object_name: str, queue_message: QueueMessage):
+        try:
+            self.rabbit_channel.publish_message(
+                exchange="",
+                routing_key="video",
+                body=queue_message.model_dump(),
+                properties=pika.BasicProperties(delivery_mode=pika.PERSISTENT_DELIVERY_MODE),
+            )
+        except Exception as _:
+            await self.remove_video_file(object_name)
+            raise BadRequestError(detail="Error while trying to convert the file")
