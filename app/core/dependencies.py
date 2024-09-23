@@ -1,7 +1,9 @@
 from typing import Annotated
 
+import pika
 from aiohttp import ClientSession
 from fastapi import Depends
+from pika.adapters.blocking_connection import BlockingChannel
 
 from app.core.exceptions import AuthError
 from app.core.http_client import get_async_client
@@ -14,6 +16,15 @@ from app.services import AuthService
 from app.services import MinioService
 
 async_minio = AsyncMinioManager()
+connection = pika.BlockingConnection(pika.ConnectionParameters(settings.RABBIT_URL))
+
+
+def get_rabbitmq_channel() -> BlockingChannel:
+    channel = connection.channel()
+    try:
+        yield channel
+    finally:
+        channel.close()
 
 
 async def get_current_user(user_credentials: UserSchema = Depends(JWTBearer())) -> UserSchema:
@@ -30,8 +41,8 @@ async def get_auth_service(client: ClientSession = Depends(get_async_client)) ->
     return AuthService(client=client)
 
 
-async def get_save_service() -> MinioService:
-    return MinioService(async_minio, bucket_name=settings.upload_bucket_name)
+async def get_save_service(channel: BlockingChannel = Depends(get_rabbitmq_channel)) -> MinioService:
+    return MinioService(async_minio, bucket_name=settings.upload_bucket_name, rabbit_channel=channel)
 
 
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
