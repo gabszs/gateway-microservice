@@ -19,11 +19,9 @@ fileUpload = Annotated[UploadFile, File(description="A file read as UploadFile")
 @authorize(role=[UserRoles.MODERATOR, UserRoles.BASE_USER])
 async def upload(file: fileUpload, service: SaveBucket, current_user: CurrentUser):
     await service.upload_video_file(file)
-    return {"filename": file.filename}
 
 
 @router.get("/download", response_class=StreamingResponse)
 @authorize(role=[UserRoles.MODERATOR, UserRoles.BASE_USER])
 async def download(file_name: str, service: SaveBucket, current_user: CurrentUser):
-    print(file_name, service)
     return await service.download_video_file(file_name)
