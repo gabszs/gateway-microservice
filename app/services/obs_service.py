@@ -7,6 +7,7 @@ from pika.adapters.blocking_connection import BlockingChannel
 
 from app.core.exceptions import BadRequestError
 from app.core.object_storage import AsyncMinioManager
+from app.core.settings import settings
 from app.schemas.file_schema import QueueMessage
 
 
@@ -43,11 +44,11 @@ class MinioService:
 
     async def publish_message(self, object_name: str, queue_message: QueueMessage):
         try:
-            self.rabbit_channel.publish_message(
-                exchange="",
-                routing_key="video",
-                body=queue_message.model_dump(),
-                properties=pika.BasicProperties(delivery_mode=pika.PERSISTENT_DELIVERY_MODE),
+            self.rabbit_channel.basic_publish(
+                exchange=settings.UPLOAD_EXCHANGE,
+                routing_key=settings.UPLOAD_ROUTING_KEY,
+                body=queue_message.model_dump_json(),
+                properties=pika.BasicProperties(delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE),
             )
         except Exception as _:
             await self.remove_video_file(object_name)
