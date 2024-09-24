@@ -15,12 +15,17 @@ from app.schemas.user_schema import User as UserSchema
 from app.services import AuthService
 from app.services import MinioService
 
+
 async_minio = AsyncMinioManager()
-connection = pika.BlockingConnection(pika.ConnectionParameters(settings.RABBIT_URL))
+
+rabbit_credentials = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASS)
+rabbit_connection = pika.BlockingConnection(
+    pika.ConnectionParameters(host=settings.RABBIT_URL, credentials=rabbit_credentials)
+)
 
 
 def get_rabbitmq_channel() -> BlockingChannel:
-    channel = connection.channel()
+    channel = rabbit_connection.channel()
     try:
         yield channel
     finally:
