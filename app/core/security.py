@@ -2,11 +2,13 @@ from functools import wraps
 from typing import List
 
 from aiohttp import ClientSession
+from aiohttp.client_exceptions import ClientConnectionError
 from fastapi import Request
 from fastapi.security import HTTPAuthorizationCredentials
 from fastapi.security import HTTPBearer
 
 from app.core.exceptions import AuthError
+from app.core.exceptions import BadRequestError
 from app.core.http_client import get_async_client
 from app.core.settings import Settings
 from app.schemas.user_schema import User as UserSchema
@@ -55,7 +57,14 @@ class JWTBearer(HTTPBearer):
 
     async def get_data_from_token(self, token: str, client: ClientSession) -> tuple[int, UserSchema]:
         token = f"Bearer {token}"
-        async with client.get(f"{settings.auth_service_url}/me", headers={"Authorization": token}) as response:
-            status_code = response.status
-            data = await response.json()
-            return status_code, UserSchema(**data)
+
+        try:
+            async with client.get(f"{settings.auth_service_url}/me", headers={"Authorization": token}) as response:
+                status_code = response.status
+                data = await response.json()
+                if status_code != 200:
+                    raise AuthError(detail=data["detail"])
+
+                return status_code, UserSchema(**data)
+        except ClientConnectionError as _:
+            raise BadRequestError(detail="Auth Service not available")
