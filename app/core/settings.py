@@ -1,4 +1,5 @@
 from os import getenv
+from typing import Optional
 
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
@@ -15,10 +16,17 @@ class Settings(BaseSettings):
     auth_service_url: str
     is_prod: str
     upload_bucket_name: str
+
     minio_endpoint: str
     minio_access_key: str
     minio_secret_key: str
+
     RABBIT_URL: str
+    RABBITMQ_USER: str
+    RABBITMQ_PASS: str
+
+    UPLOAD_ROUTING_KEY: str
+    UPLOAD_EXCHANGE: Optional[str] = ""
 
 
 settings = Settings()
