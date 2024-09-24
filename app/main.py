@@ -1,7 +1,9 @@
 from contextlib import asynccontextmanager
 
+import uvicorn
 from fastapi import FastAPI
 
+from app.core.dependencies import rabbit_connection
 from app.routes.v1 import routers
 
 
@@ -11,6 +13,9 @@ def init_app():
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         yield
+
+        if rabbit_connection and rabbit_connection.is_open:
+            rabbit_connection.close()
 
     app = FastAPI(
         title="CV-Api",
@@ -29,3 +34,7 @@ def init_app():
 
 
 app = init_app()
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=5555)
