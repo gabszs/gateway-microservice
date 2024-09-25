@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: gateway-converter-deployment
-  namespace: gateway-converter-svc
+  namespace: gateway-converter-ns
 spec:
   selector:
     matchLabels:
