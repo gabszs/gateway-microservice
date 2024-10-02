@@ -7,16 +7,15 @@ from pika.adapters.blocking_connection import BlockingChannel
 
 from app.core.exceptions import AuthError
 from app.core.http_client import get_async_client
-from app.core.object_storage import AsyncMinioManager
+from app.core.object_storage import AsyncS3Manager
 from app.core.security import JWTBearer
 from app.core.settings import settings
 from app.schemas.user_schema import User
 from app.schemas.user_schema import User as UserSchema
 from app.services import AuthService
-from app.services import MinioService
+from app.services import ConverterService
 
-
-async_minio = AsyncMinioManager()
+async_s3 = AsyncS3Manager()
 
 rabbit_credentials = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASS)
 rabbit_connection = pika.BlockingConnection(
@@ -46,11 +45,11 @@ async def get_auth_service(client: ClientSession = Depends(get_async_client)) ->
     return AuthService(client=client)
 
 
-async def get_save_service(channel: BlockingChannel = Depends(get_rabbitmq_channel)) -> MinioService:
-    return MinioService(async_minio, bucket_name=settings.upload_bucket_name, rabbit_channel=channel)
+async def get_save_service(channel: BlockingChannel = Depends(get_rabbitmq_channel)) -> ConverterService:
+    return ConverterService(async_s3, bucket_name=settings.upload_bucket_name, rabbit_channel=channel)
 
 
 AuthServiceDependency = Annotated[AuthService, Depends(get_auth_service)]
 CurrentUser = Annotated[User, Depends(get_current_user)]
 CurrentActiveUser = Annotated[User, Depends(get_current_active_user)]
-SaveBucket = Annotated[MinioService, Depends(get_save_service)]
+SaveBucket = Annotated[ConverterService, Depends(get_save_service)]
