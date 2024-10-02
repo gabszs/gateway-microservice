@@ -4,7 +4,6 @@ from fastapi import APIRouter
 from fastapi import File
 from fastapi import status
 from fastapi import UploadFile
-from fastapi.responses import StreamingResponse
 from pydantic import EmailStr
 
 from app.core.dependencies import CurrentUser
@@ -20,9 +19,3 @@ fileUpload = Annotated[UploadFile, File(description="A file read as UploadFile")
 @authorize(role=[UserRoles.MODERATOR, UserRoles.BASE_USER])
 async def upload(email: EmailStr, file: fileUpload, service: SaveBucket, current_user: CurrentUser):
     await service.upload_video_file(file, client_email=email)
-
-
-@router.get("/download", response_class=StreamingResponse)
-@authorize(role=[UserRoles.MODERATOR, UserRoles.BASE_USER])
-async def download(file_name: str, service: SaveBucket, current_user: CurrentUser):
-    return await service.download_video_file(file_name)
