@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: gateway_converter
-          image: gabzsz/gateway_converter:0.1.0
+          image: gabzsz/gateway_converter:0.1.1
           envFrom:
             - configMapRef:
                 name: gateway-converter-configmap
