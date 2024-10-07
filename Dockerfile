@@ -24,4 +24,4 @@ COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
 
 COPY app ./app
 EXPOSE 80
-CMD ["uvicorn", "--host", "0.0.0.0", "app.main:app"]
+CMD ["uvicorn", "--host", "0.0.0.0", "--port", "80", "app.main:app"]
