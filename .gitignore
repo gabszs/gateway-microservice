@@ -37,3 +37,8 @@ settings.json
 
 .github/
 .github/workflows/master.yaml
+
+app/
+tests/
+.coverage
+test.py
