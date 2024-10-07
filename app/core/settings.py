@@ -14,12 +14,12 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=env_path, env_file_encoding="utf-8")
 
     auth_service_url: str
-    is_prod: str
+    is_prod: bool
     upload_bucket_name: str
 
-    minio_endpoint: str
-    minio_access_key: str
-    minio_secret_key: str
+    s3_endpoint: str
+    s3_access_key: str
+    s3_secret_key: str
 
     RABBIT_URL: str
     RABBITMQ_USER: str

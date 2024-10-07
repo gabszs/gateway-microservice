@@ -1,77 +1,62 @@
-from io import BytesIO
-from typing import List
-from typing import Optional
-from typing import Union
+import aiobotocore.session
 
-from aiohttp.client_reqrep import ClientResponse
-from minio.error import S3Error
-from miniopy_async import Minio as AsyncMinio
-
-from app.core.exceptions import ObjectDownloadError
-from app.core.exceptions import ObjectNotFoundError
-from app.core.exceptions import ObjectStorageError
-from app.core.exceptions import ObjectUploadError
-from app.core.http_client import get_async_client
 from app.core.settings import settings
 
 
-class AsyncMinioManager:
+class AsyncS3Manager:
     def __init__(
         self,
-        endpoint: str = settings.minio_endpoint,
-        access_key: str = settings.minio_access_key,
-        secret_key: str = settings.minio_secret_key,
-        secure: bool = False,
-    ) -> None:
-        self.client = AsyncMinio(endpoint, access_key=access_key, secret_key=secret_key, secure=secure)
+        s3_access_key_id: str = settings.s3_access_key,
+        s3_secret_access_key: str = settings.s3_secret_key,
+        region_name: str = "auto",
+        endpoint_url: str = settings.s3_endpoint,
+    ):
+        self.s3_access_key_id = s3_access_key_id
+        self.s3_secret_access_key = s3_secret_access_key
+        self.region_name = region_name
+        self.endpoint_url = endpoint_url
+        self.session = aiobotocore.session.get_session()
 
-    async def put_file(
-        self, bucket_name: str, object_name: str, data: Union[bytearray, BytesIO], length: int, content_type: str
-    ) -> None:
-        await self.client.put_object(bucket_name, object_name, data, length, content_type)
-
-    async def upload_file(self, bucket_name: str, object_name: str, file_path: str) -> None:
-        try:
-            await self.client.fput_object(bucket_name, object_name, file_path)
-        except FileNotFoundError:
-            raise ObjectNotFoundError(f"File {file_path} not found.")
-        except S3Error as e:
-            raise ObjectUploadError(f"Failed to upload object {object_name} to bucket {bucket_name}: {e}")
-
-    async def download_file(self, bucket_name: str, object_name: str, file_path: str) -> None:
-        try:
-            await self.client.fget_object(bucket_name, object_name, file_path)
-        except S3Error as e:
-            raise ObjectDownloadError(f"Failed to download object {object_name} from bucket {bucket_name}: {e}")
-
-    async def download_file_to_obj(self, bucket_name: str, object_name: str) -> Optional[BytesIO]:
-        try:
-            data = await self.client.get_object(bucket_name, object_name)
-            return BytesIO(data.read())
-        except S3Error as e:
-            raise ObjectDownloadError(
-                f"Failed to download object {object_name} to memory from bucket {bucket_name}: {e}"
-            )
-
-    async def list_objects(self, bucket_name: str) -> List[str]:
-        try:
-            objects = await self.client.list_buckets
-            return [obj.object_name for obj in objects]
-        except S3Error as e:
-            raise ObjectStorageError(f"Failed to list objects in bucket {bucket_name}: {e}")
-
-    async def delete_object(self, bucket_name: str, object_name: str) -> None:
-        try:
-            await self.client.remove_object(bucket_name, object_name)
-        except S3Error as e:
-            raise ObjectStorageError(f"Failed to delete object {object_name} from bucket {bucket_name}: {e}")
+    async def _create_client(self):
+        return self.session.create_client(
+            service_name="s3",
+            endpoint_url=self.endpoint_url,
+            aws_access_key_id=self.s3_access_key_id,
+            aws_secret_access_key=self.s3_secret_access_key,
+            region_name=self.region_name,
+        )
 
     async def bucket_exists(self, bucket_name: str) -> bool:
-        try:
-            return await self.client.bucket_exists(bucket_name)
-        except S3Error as e:
-            raise ObjectStorageError(f"Failed to check if bucket {bucket_name} exists: {e}")
+        async with await self._create_client() as client:
+            response = await client.list_buckets()
+            buckets = [bucket["Name"] for bucket in response["Buckets"]]
+            return bucket_name in buckets
 
-    async def download_object(self, bucket_name: str, object_name: str) -> ClientResponse:
-        async for client_session in get_async_client():
-            return await self.client.get_object(bucket_name, object_name, client_session)
+    async def put_object(self, bucket_name: str, key: str, data: bytes) -> dict:
+        async with await self._create_client() as client:
+            resp = await client.put_object(Bucket=bucket_name, Key=key, Body=data)
+            return resp
+
+    async def get_object(self, bucket_name: str, key: str) -> dict:
+        async with await self._create_client() as client:
+            response = await client.get_object(Bucket=bucket_name, Key=key)
+            async with response["Body"] as stream:
+                data = await stream.read()
+            return {
+                "Content": data,
+                "ContentType": response.get("ContentType", "application/octet-stream"),
+            }
+
+    async def delete_object(self, bucket_name: str, key: str) -> dict:
+        async with await self._create_client() as client:
+            resp = await client.delete_object(Bucket=bucket_name, Key=key)
+            return resp
+
+    async def list_objects(self, bucket_name: str, prefix: str) -> list:
+        async with await self._create_client() as client:
+            paginator = client.get_paginator("list_objects")
+            objects = []
+            async for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
+                for obj in page.get("Contents", []):
+                    objects.append(obj)
+            return objects

@@ -1,4 +1,4 @@
 from .auth_service import AuthService
-from .obs_service import MinioService
+from .converter_service import ConverterService
 
-__all__ = ["AuthService", "MinioService"]
+__all__ = ["AuthService", "ConverterService"]
