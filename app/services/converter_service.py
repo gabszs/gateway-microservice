@@ -7,8 +7,8 @@ from pika.adapters.blocking_connection import BlockingChannel
 from pydantic import EmailStr
 
 from app.core.exceptions import BadRequestError
-from app.core.object_storage import AsyncS3Manager
 from app.core.settings import settings
+from app.helpers import AsyncS3Manager
 from app.schemas.file_schema import QueueMessage
 
 
