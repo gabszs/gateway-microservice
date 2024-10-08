@@ -1,26 +1,23 @@
-import pytest
-from uuid import uuid4
 from datetime import datetime
+from uuid import uuid4
+
+import pytest
 from pydantic import ValidationError
-from app.schemas.user_schema import BaseUser, User
+
 from app.core.enums import UserRoles
+from app.schemas.user_schema import BaseUser
+from app.schemas.user_schema import User
 
 
 def test_base_user_valid():
-    data = {
-        "email": "test@example.com",
-        "username": "testuser"
-    }
+    data = {"email": "test@example.com", "username": "testuser"}
     base_user = BaseUser(**data)
     assert base_user.email == "test@example.com"
     assert base_user.username == "testuser"
 
 
 def test_base_user_invalid_email():
-    data = {
-        "email": "invalid-email",
-        "username": "testuser"
-    }
+    data = {"email": "invalid-email", "username": "testuser"}
     with pytest.raises(ValidationError):
         BaseUser(**data)
 
@@ -33,7 +30,7 @@ def test_user_valid():
         "created_at": datetime.now(),
         "updated_at": datetime.now(),
         "is_active": True,
-        "role": UserRoles.ADMIN
+        "role": UserRoles.ADMIN,
     }
     user = User(**data)
     assert user.email == "test@example.com"
@@ -50,7 +47,7 @@ def test_user_invalid_role():
         "created_at": datetime.now(),
         "updated_at": datetime.now(),
         "is_active": True,
-        "role": "invalid_role"
+        "role": "invalid_role",
     }
     with pytest.raises(ValidationError):
         User(**data)
