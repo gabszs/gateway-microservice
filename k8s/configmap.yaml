@@ -5,7 +5,7 @@ metadata:
   name: gateway-converter-configmap
   namespace: video-to-audio-converter
 data:
-  auth_service_url: "http://auth-converter-svc"
+  AUTH_SERVICE_URL: "http://auth-converter-svc/v1/auth"
   is_prod: "true"
   upload_bucket_name: "video-to-audio-converter"
   UPLOAD_ROUTING_KEY: "video_converter"
