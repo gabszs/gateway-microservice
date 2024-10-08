@@ -11,7 +11,7 @@ env:
   DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
   DOCKER_HUB_TOKEN: ${{ secrets.DOCKER_HUB_TOKEN }}
 
-  auth_service_url: ""
+  AUTH_SERVICE_URL: ""
   is_prod: "true"
   upload_bucket_name: ""
   s3_endpoint: ""

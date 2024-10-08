@@ -59,7 +59,7 @@ class JWTBearer(HTTPBearer):
         token = f"Bearer {token}"
 
         try:
-            async with client.get(f"{settings.auth_service_url}/me", headers={"Authorization": token}) as response:
+            async with client.get(f"{settings.AUTH_SERVICE_URL}/me", headers={"Authorization": token}) as response:
                 status_code = response.status
                 data = await response.json()
                 if status_code != 200:

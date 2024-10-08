@@ -12,7 +12,7 @@ class AuthService:
         self.client = client
 
     async def sign_in(self, schema: SignIn):
-        url = settings.auth_service_url
+        url = settings.AUTH_SERVICE_URL
         try:
             async with self.client.post(f"{url}/sign-in", json=schema.model_dump()) as response:
                 data = await response.json()
