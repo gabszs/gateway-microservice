@@ -18,14 +18,12 @@ from app.services import ConverterService
 async_s3 = AsyncS3Manager()
 
 rabbit_credentials = pika.PlainCredentials(settings.RABBITMQ_USER, settings.RABBITMQ_PASS)
-
-def get_rabbit_connection() -> pika.BlockingConnection:
-    return pika.BlockingConnection(
-        pika.ConnectionParameters(host=settings.RABBIT_URL, credentials=rabbit_credentials)
-    )
+rabbit_connection = pika.BlockingConnection(
+    pika.ConnectionParameters(host=settings.RABBIT_URL, credentials=rabbit_credentials)
+)
 
 
-def get_rabbitmq_channel(rabbit_connection: pika.BlockingConnection = Depends(get_rabbit_connection)) -> BlockingChannel:
+def get_rabbitmq_channel() -> BlockingChannel:
     channel = rabbit_connection.channel()
     try:
         yield channel
