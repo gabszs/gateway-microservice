@@ -3,9 +3,8 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 
-from app.core.dependencies import rabbit_connection
+from app.helpers.rabbit_manager import rabbit_manager
 from app.routes.v1 import routers
-
 
 # http://localhost:5555/v1/converter/download?file_name=240925173542ee04_2024-07-08%2019-14-29.mp3
 
@@ -15,10 +14,9 @@ def init_app():
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):
+        rabbit_manager.init()
         yield
-
-        if rabbit_connection and rabbit_connection.is_open:
-            rabbit_connection.close()
+        rabbit_manager.close_connection()
 
     app = FastAPI(
         title="CV-Api",
