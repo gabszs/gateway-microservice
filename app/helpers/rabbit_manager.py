@@ -25,7 +25,7 @@ class RabbitMQManager:
         credentials = pika.PlainCredentials(username, password)
         if not self.rabbit_connection or self.rabbit_connection.is_closed:
             self.rabbit_connection = pika.BlockingConnection(
-                pika.ConnectionParameters(host=host, credentials=credentials)
+                pika.ConnectionParameters(host=host, credentials=credentials, heartbeat=30)
             )
             print("RabbitMQ connection established.")
 
@@ -51,6 +51,20 @@ class RabbitMQManager:
             yield channel
         finally:
             channel.close()
+
+
+    # async def publish_message(self, object_name: str, queue_message: QueueMessage):
+    #     try:
+    #         self.rabbit_channel.basic_publish(
+    #             exchange=settings.UPLOAD_EXCHANGE,
+    #             routing_key=settings.UPLOAD_ROUTING_KEY,
+    #             body=queue_message.model_dump_json(),
+    #             properties=pika.BasicProperties(delivery_mode=pika.spec.PERSISTENT_DELIVERY_MODE),
+    #         )
+    #     except Exception as _:
+    #         await self.remove_video_file(object_name)
+    #         raise BadRequestError(detail="Error while trying to convert the file")
+
 
 
 rabbit_manager = RabbitMQManager()
