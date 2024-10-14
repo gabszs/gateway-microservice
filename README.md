@@ -16,6 +16,8 @@ Para acessar a branch
 ```bash
 git checkout gitops
 ```
+## Arquitetura das APIs
+![Architecture Diagram](docs/system-arch-diagram.png)
 
 ## 📦 Instalação
 
