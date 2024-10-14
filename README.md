@@ -1,14 +1,71 @@
-🎧 MP3 Conversion API Gateway
-Bem-vindo ao MP3 Conversion API Gateway! Esta API é responsável por centralizar e gerenciar o processo de conversão de arquivos de áudio para o formato MP3. Ela faz a ponte entre diferentes microserviços especializados em tarefas como a conversão de arquivos, compressão e otimização de MP3, além da extração e inserção de metadados.
+# 🚀 API de Conversão de Vídeos em Áudio
 
-Descrição
-A API Gateway simplifica a comunicação com diversos serviços de conversão de áudio, permitindo que os usuários enviem suas requisições para um ponto único, que então distribui as tarefas para os microserviços responsáveis. Isso facilita a gestão e automatiza o processo de conversão de diferentes formatos para MP3, garantindo eficiência e rapidez.
+Este projeto implementa uma API que permite a conversão de vídeos em arquivos de áudio. A API utiliza serviços de mensageria para orquestrar a conversão, armazenamento no Cloudflare R2, e envio de notificações por email com o link de download do áudio convertido.
 
-O foco principal desta API é oferecer uma interface simples e unificada para o gerenciamento dos serviços de conversão, sem a necessidade de interagir diretamente com os serviços individuais.
+## 📦 Instalação
 
-Funcionalidades
-Conversão de múltiplos formatos: A API aceita arquivos de áudio em diversos formatos e os converte para MP3.
-Otimização de arquivos: Além da conversão, os serviços podem comprimir e otimizar os arquivos MP3, ajustando a qualidade e o tamanho.
-Gestão de metadados: A API permite a extração e edição de metadados (como título, artista e álbum) para garantir que os arquivos convertidos estejam corretamente identificados.
-Escalabilidade: Como a API Gateway distribui as tarefas entre diferentes microserviços, ela pode ser facilmente escalada para lidar com um grande volume de conversões.
-Esta API é ideal para qualquer aplicação que precise converter arquivos de áudio para MP3 de maneira eficiente e integrada.
+Para instalar o projeto, utilize os seguintes comandos:
+
+### 1. Clone o repositório:
+git clone https://github.com/gabszs/gateway-microservice.git
+cd gateway-microservice
+
+### 2. Instale as dependências utilizando Poetry:
+poetry install
+
+## 🚀 Uso
+
+### Conversão de Vídeo para Áudio
+O serviço permite que você envie um vídeo, que será armazenado no bucket S3 da Cloudflare R2. Após o envio, a conversão para áudio será realizada por um serviço consumidor, e o arquivo de áudio será salvo no bucket. Em seguida, uma notificação será enviada ao usuário com o link de download.
+
+**Endpoint:**  
+POST /upload/{email}
+
+@router.post("/upload/{email}", status_code=status.HTTP_204_NO_CONTENT)
+@authorize(role=[UserRoles.MODERATOR, UserRoles.BASE_USER])
+async def upload(email: EmailStr, file: fileUpload, service: SaveBucket, current_user: CurrentUser):
+    await service.upload_video_file(file, client_email=email)
+
+### Notificações por Email
+Após a conclusão da conversão, o serviço envia um email para o usuário com o link para download do áudio convertido, diretamente do bucket.
+
+@router.post("/send-notification", status_code=status.HTTP_200_OK)
+async def send_notification(email: EmailStr, service: NotificationService):
+    await service.send_conversion_complete_email(email=email, download_link="https://link-do-bucket/audio.mp3")
+
+## 🛠 Funcionalidades
+
+- **Upload de Vídeo:** Permite o upload de vídeos que serão armazenados no Cloudflare R2 (S3-compatible).
+- **Conversão Assíncrona:** A conversão de vídeos em áudio é realizada de forma assíncrona através de serviços de mensageria.
+- **Armazenamento de Áudio:** O áudio convertido é armazenado no Cloudflare R2.
+- **Notificações:** O serviço envia emails com o link para download do áudio convertido.
+
+## 🗂 Estrutura de Diretórios
+
+C:.
+├───.github
+│   └───workflows
+├───app
+│   ├───core
+│   ├───helpers
+│   ├───routes
+│   │   └───v1
+│   ├───schemas
+│   └───services
+└───tests
+    ├───schemas
+
+## ⚙️ Requisitos
+
+- Python 3.8 ou superior
+- FastAPI
+- MinIO
+- JWT para autenticação
+
+## 🤝 Contribuições
+
+Contribuições são bem-vindas! Sinta-se à vontade para abrir um pull request ou entrar em contato para discutir novas funcionalidades.
+
+## 📝 Licença
+
+Este projeto é licenciado sob a licença MIT. Consulte o arquivo LICENSE para obter mais informações.
