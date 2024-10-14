@@ -27,13 +27,22 @@ POST /upload/{email}
 async def upload(email: EmailStr, file: fileUpload, service: SaveBucket, current_user: CurrentUser):
     await service.upload_video_file(file, client_email=email)
 ```
-### Notificações por Email
-Após a conclusão da conversão, o serviço envia um email para o usuário com o link para download do áudio convertido, diretamente do bucket.
+### Autenticação de Usuários
+O endpoint permite que os usuários se autentiquem na API fornecendo suas informações de login. Após a validação, um token de autenticação é gerado e retornado para o usuário.
 ```bash
-@router.post("/send-notification", status_code=status.HTTP_200_OK)
-async def send_notification(email: EmailStr, service: NotificationService):
-    await service.send_conversion_complete_email(email=email, download_link="https://link-do-bucket/audio.mp3")
+@router.post("/sign-in", response_model=SignInResponse)
+async def sign_in(user_info: SignIn, service: AuthServiceDependency):
+    return await service.sign_in(user_info)
 ```
+que faz chamadas remotas no servico de auth e validada a identidate do user, que tambem retorna os atributos do user, permitindo a validacao de RBAC pelo servico.
+
+Para a validacao no endpoint da autencidade do token do user, se usar a dependencia 
+```bash
+async def get_current_user(user_credentials: UserSchema = Depends(JWTBearer())) -> UserSchema:
+    return user_credentials
+```
+
+
 ## 🛠 Funcionalidades
 
 - **Upload de Vídeo:** Permite o upload de vídeos que serão armazenados no Cloudflare R2 (S3-compatible).
