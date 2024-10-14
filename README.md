@@ -67,6 +67,7 @@ async def get_current_user(user_credentials: UserSchema = Depends(JWTBearer())) 
 
 ## 🗂 Estrutura de Diretórios
 
+```bash
 C:.
 ├───.github
 │   └───workflows
@@ -78,7 +79,7 @@ C:.
 │   ├───schemas
 │   └───services
 └───tests
-    ├───schemas
+```
 
 ## ⚙️ Requisitos
 
