@@ -21,18 +21,19 @@ O serviço permite que você envie um vídeo, que será armazenado no bucket S3 
 **Endpoint:**  
 POST /upload/{email}
 
+```bash
 @router.post("/upload/{email}", status_code=status.HTTP_204_NO_CONTENT)
 @authorize(role=[UserRoles.MODERATOR, UserRoles.BASE_USER])
 async def upload(email: EmailStr, file: fileUpload, service: SaveBucket, current_user: CurrentUser):
     await service.upload_video_file(file, client_email=email)
-
+```
 ### Notificações por Email
 Após a conclusão da conversão, o serviço envia um email para o usuário com o link para download do áudio convertido, diretamente do bucket.
-
+```bash
 @router.post("/send-notification", status_code=status.HTTP_200_OK)
 async def send_notification(email: EmailStr, service: NotificationService):
     await service.send_conversion_complete_email(email=email, download_link="https://link-do-bucket/audio.mp3")
-
+```
 ## 🛠 Funcionalidades
 
 - **Upload de Vídeo:** Permite o upload de vídeos que serão armazenados no Cloudflare R2 (S3-compatible).
