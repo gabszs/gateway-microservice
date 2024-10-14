@@ -2,6 +2,9 @@
 
 Este projeto implementa uma API que permite a conversão de vídeos em arquivos de áudio. A API utiliza serviços de mensageria para orquestrar a conversão, armazenamento no Cloudflare R2, e envio de notificações por email com o link de download do áudio convertido.
 
+## Arquitetura das APIs
+![Architecture Diagram](docs/system-arch-diagram.png)
+
 ## Docker Container
 A aplicação é dockerizada de maneira eficiente utilizando o Docker. O Dockerfile inclui comandos otimizados e cache para garantir uma construção rápida e leve da imagem. Após a construção, a imagem é enviada para o Docker Hub, facilitando o deployment em ambientes de produção e desenvolvimento.
 para buildar a imagem localmente
@@ -16,8 +19,6 @@ Para acessar a branch
 ```bash
 git checkout gitops
 ```
-## Arquitetura das APIs
-![Architecture Diagram](docs/system-arch-diagram.png)
 
 ## 📦 Instalação
 
