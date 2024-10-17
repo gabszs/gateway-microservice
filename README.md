@@ -1,4 +1,4 @@
-# 🚀 API de Conversão de Vídeos em Áudio
+# 🚀 API de gateway para Conversão de Vídeos em Áudio
 
 Este projeto implementa uma API que permite a conversão de vídeos em arquivos de áudio. A API utiliza serviços de mensageria para orquestrar a conversão, armazenamento no Cloudflare R2, e envio de notificações por email com o link de download do áudio convertido.
 
