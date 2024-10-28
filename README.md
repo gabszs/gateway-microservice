@@ -7,7 +7,7 @@ Este projeto implementa uma API que permite a conversão de vídeos em arquivos 
 
 ## Repository Links
 - [Video-Converter](https://github.com/gabszs/video-converter-rabbit)
-- [Notification-Servicr](https://github.com/gabszs/notification)
+- [Notification-Service](https://github.com/gabszs/notification)
 - [Auth-Service](https://github.com/gabszs/template-fastapi-users-auth)
 
 ## Docker Container
